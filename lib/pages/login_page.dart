@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../bloc/auth_bloc.dart';
+import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,49 +24,74 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Login Page"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: "Email",
-                hintText: "Enter your email",
-                hintStyle: TextStyle(color: Color.fromARGB(255, 175, 175, 175)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                  borderSide: BorderSide(color: Colors.blue),
-                ),
-                suffixIcon: Icon(Icons.email),
-              ),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.error),
             ),
-            const SizedBox(height: 10),
-            TextField(
-                controller: _passwordController,
-                obscureText: isVisible,
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  hintText: "Enter your password",
-                  hintStyle: const TextStyle(
-                      color: Color.fromARGB(255, 175, 175, 175)),
-                  border: const OutlineInputBorder(
+          );
+        }
+        if (state is AuthSuccess) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+              (route) => false);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Login Page"),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            children: [
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  hintText: "Enter your email",
+                  hintStyle:
+                      TextStyle(color: Color.fromARGB(255, 175, 175, 175)),
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10.0)),
                     borderSide: BorderSide(color: Colors.blue),
                   ),
-                  suffixIcon: IconButton(
-                      onPressed: toggleVisible,
-                      icon: isVisible
-                          ? const Icon(Icons.visibility)
-                          : const Icon(Icons.visibility_off)),
-                )),
-            const SizedBox(height: 10),
-            ElevatedButton(onPressed: () {}, child: const Text("Login"))
-          ],
+                  suffixIcon: Icon(Icons.email),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                  controller: _passwordController,
+                  obscureText: isVisible,
+                  decoration: InputDecoration(
+                    labelText: "Password",
+                    hintText: "Enter your password",
+                    hintStyle: const TextStyle(
+                        color: Color.fromARGB(255, 175, 175, 175)),
+                    border: const OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
+                    suffixIcon: IconButton(
+                        onPressed: toggleVisible,
+                        icon: isVisible
+                            ? const Icon(Icons.visibility)
+                            : const Icon(Icons.visibility_off)),
+                  )),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                  onPressed: () {
+                    context.read<AuthBloc>().add(AuthLoginRequested(
+                          email: _emailController.text.trim(),
+                          password: _passwordController.text.trim(),
+                        ));
+                  },
+                  child: const Text("Login"))
+            ],
+          ),
         ),
       ),
     );
